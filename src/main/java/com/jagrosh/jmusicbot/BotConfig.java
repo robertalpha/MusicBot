@@ -23,6 +23,8 @@ import com.typesafe.config.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
+
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 
@@ -43,7 +45,7 @@ public class BotConfig
             successEmoji, warningEmoji, errorEmoji, loadingEmoji, searchingEmoji,
             evalEngine;
     private boolean stayInChannel, songInGame, npImages, updatealerts, useEval, dbots;
-    private long owner, maxSeconds, aloneTimeUntilStop;
+    private long owner, guild, voiceChannelId, maxSeconds, aloneTimeUntilStop;
     private int maxYTPlaylistPages;
     private double skipratio;
     private OnlineStatus status;
@@ -62,21 +64,31 @@ public class BotConfig
         valid = false;
         
         // read config from file
-        try 
+        try
         {
             // get the path to the config, default config.txt
             path = getConfigPath();
-            
-            // load in the config file, plus the default values
-            //Config config = ConfigFactory.parseFile(path.toFile()).withFallback(ConfigFactory.load());
-            Config config = ConfigFactory.load();
-            
+
+            Config config = null;
+
+            if(getEnv("CONFIG_DEFAULTS").map(c -> c.equalsIgnoreCase("TRUE")).orElseGet(() -> false)) {
+              String defaultConfig = loadDefaultConfig();
+              config = ConfigFactory.parseString(defaultConfig);
+            } else {
+                // load in the config file, plus the default values
+                //Config config = ConfigFactory.parseFile(path.toFile()).withFallback(ConfigFactory.load());
+                config = ConfigFactory.load();
+            }
+
             // set values
-            token = config.getString("token");
-            prefix = config.getString("prefix");
+            Config finalConfig = config;
+            token = getEnv("TOKEN").orElseGet(() -> finalConfig.getString("token"));
+            prefix = getEnv("PREFIX").orElseGet(() -> finalConfig.getString("prefix"));
             altprefix = config.getString("altprefix");
             helpWord = config.getString("help");
-            owner = config.getLong("owner");
+            owner = getEnv("OWNER").map(Long::parseLong).orElseGet(() -> finalConfig.getLong("owner"));
+            guild = getEnv("GUILD").map(Long::parseLong).orElseGet(() -> finalConfig.getLong("guild"));
+            voiceChannelId = getEnv("VOICE_CHANNEL_ID").map(Long::parseLong).orElseGet(() -> finalConfig.getLong("voiceChannelID"));
             successEmoji = config.getString("success");
             warningEmoji = config.getString("warning");
             errorEmoji = config.getString("error");
@@ -88,7 +100,7 @@ public class BotConfig
             songInGame = config.getBoolean("songinstatus");
             npImages = config.getBoolean("npimages");
             updatealerts = config.getBoolean("updatealerts");
-            logLevel = config.getString("loglevel");
+            logLevel = getEnv("LOGLEVEL").orElseGet(() -> finalConfig.getString("loglevel"));
             useEval = config.getBoolean("eval");
             evalEngine = config.getString("evalengine");
             maxSeconds = config.getLong("maxtime");
@@ -380,5 +392,17 @@ public class BotConfig
     public Config getTransforms()
     {
         return transforms;
+    }
+
+    private Optional<String> getEnv(String environmentVariable) {
+        return Optional.ofNullable(System.getenv(environmentVariable));
+    }
+
+    public long getGuild() {
+        return guild;
+    }
+
+    public String getVoiceChannelId() {
+        return Long.toString(voiceChannelId);
     }
 }

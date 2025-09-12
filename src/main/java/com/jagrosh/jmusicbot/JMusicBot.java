@@ -19,6 +19,8 @@ import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.*;
+import com.jagrosh.jmusicbot.api.ApiCommandHandler;
+import com.jagrosh.jmusicbot.api.CommandController;
 import com.jagrosh.jmusicbot.commands.admin.*;
 import com.jagrosh.jmusicbot.commands.dj.*;
 import com.jagrosh.jmusicbot.commands.general.*;
@@ -29,8 +31,10 @@ import com.jagrosh.jmusicbot.gui.GUI;
 import com.jagrosh.jmusicbot.settings.SettingsManager;
 import com.jagrosh.jmusicbot.utils.OtherUtil;
 import java.awt.Color;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import javax.security.auth.login.LoginException;
+import com.sun.net.httpserver.HttpServer;
 import net.dv8tion.jda.api.*;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -74,7 +78,7 @@ public class JMusicBot
         Prompt prompt = new Prompt("JMusicBot");
         
         // startup checks
-        OtherUtil.checkVersion(prompt);
+//        OtherUtil.checkVersion(prompt);
         OtherUtil.checkJavaVersion(prompt);
         
         // load config
@@ -90,7 +94,7 @@ public class JMusicBot
         
         // set up the listener
         EventWaiter waiter = new EventWaiter();
-        SettingsManager settings = new SettingsManager();
+        SettingsManager settings = new SettingsManager(config);
         Bot bot = new Bot(waiter, config, settings);
         CommandClient client = createCommandClient(config, settings, bot);
         
@@ -127,6 +131,14 @@ public class JMusicBot
                     .build();
             bot.setJDA(jda);
 
+            var port = 8080;
+            try {
+                var apiHandler = new ApiCommandHandler(bot, config.getGuild());
+                new CommandController(HttpServer.create(new InetSocketAddress(port), 0), apiHandler);
+            } catch (Exception e) {
+                prompt.alert(Prompt.Level.ERROR, "JMusicBot", "JMusicBot could not open port: " + port);
+            }
+
             // check if something about the current startup is not supported
             String unsupportedReason = OtherUtil.getUnsupportedBotReason(jda);
             if (unsupportedReason != null)
@@ -138,7 +150,7 @@ public class JMusicBot
             }
             
             // other check that will just be a warning now but may be required in the future
-            // check if the user has changed the prefix and provide info about the 
+            // check if the user has changed the prefix and provide info about the
             // message content intent
             if(!"@mention".equals(config.getPrefix()))
             {
@@ -190,8 +202,7 @@ public class JMusicBot
                 .addCommands(aboutCommand,
                         new PingCommand(),
                         new SettingsCmd(bot),
-                        
-                        new LyricsCmd(bot),
+
                         new NowplayingCmd(bot),
                         new PlayCmd(bot),
                         new PlaylistsCmd(bot),

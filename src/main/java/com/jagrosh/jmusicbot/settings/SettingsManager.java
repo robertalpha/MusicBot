@@ -16,6 +16,7 @@
 package com.jagrosh.jmusicbot.settings;
 
 import com.jagrosh.jdautilities.command.GuildSettingsManager;
+import com.jagrosh.jmusicbot.BotConfig;
 import com.jagrosh.jmusicbot.utils.OtherUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -37,7 +38,7 @@ public class SettingsManager implements GuildSettingsManager<Settings>
     private final static String SETTINGS_FILE = "serversettings.json";
     private final HashMap<Long,Settings> settings;
 
-    public SettingsManager()
+    public SettingsManager(BotConfig config)
     {
         this.settings = new HashMap<>();
 
@@ -53,7 +54,7 @@ public class SettingsManager implements GuildSettingsManager<Settings>
 
                 settings.put(Long.parseLong(id), new Settings(this,
                         o.has("text_channel_id") ? o.getString("text_channel_id")            : null,
-                        o.has("voice_channel_id")? o.getString("voice_channel_id")           : null,
+                        o.has("voice_channel_id")? o.getString("voice_channel_id")           : config.getVoiceChannelId(),
                         o.has("dj_role_id")      ? o.getString("dj_role_id")                 : null,
                         o.has("volume")          ? o.getInt("volume")                        : 100,
                         o.has("default_playlist")? o.getString("default_playlist")           : null,

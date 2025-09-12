@@ -44,11 +44,12 @@
             <artifactId>JDA</artifactId>
             <version>4.4.1_353</version>
         </dependency>
+        <!-- All modules -->
         <dependency>
-            <groupId>com.jagrosh</groupId>
-            <artifactId>jda-utilities</artifactId>
-            <version>3.0.5</version>
-            <type>pom</type>
+            <groupId>com.github.JDA-Applications</groupId>
+            <artifactId>JDA-Utilities</artifactId>
+            <!-- Latest commit hash when i wrote this-->
+            <version>c16a4b264b</version>
         </dependency>
 
         <!-- Music Dependencies -->
@@ -60,13 +61,8 @@
         <dependency>
             <groupId>dev.lavalink.youtube</groupId>
             <artifactId>common</artifactId>
-            <version>1.5.2</version>
+            <version>1.12.0</version>
         </dependency>
-	<dependency>
-	    <groupId>com.github.jagrosh</groupId>
-	    <artifactId>JLyrics</artifactId>
-	    <version>master-SNAPSHOT</version>
-	</dependency>
         <dependency>
             <groupId>com.dunctebot</groupId>
             <artifactId>sourcemanagers</artifactId>
