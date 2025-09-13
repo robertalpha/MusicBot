@@ -51,17 +51,8 @@ public class SettingsManager implements GuildSettingsManager<Settings>
                 if (!o.has("repeat_mode") && o.has("repeat") && o.getBoolean("repeat"))
                     o.put("repeat_mode", RepeatMode.ALL);
 
-
-                settings.put(Long.parseLong(id), new Settings(this,
-                        o.has("text_channel_id") ? o.getString("text_channel_id")            : null,
-                        o.has("voice_channel_id")? o.getString("voice_channel_id")           : config.getVoiceChannelId(),
-                        o.has("dj_role_id")      ? o.getString("dj_role_id")                 : null,
-                        o.has("volume")          ? o.getInt("volume")                        : 100,
-                        o.has("default_playlist")? o.getString("default_playlist")           : null,
-                        o.has("repeat_mode")     ? o.getEnum(RepeatMode.class, "repeat_mode"): RepeatMode.OFF,
-                        o.has("prefix")          ? o.getString("prefix")                     : null,
-                        o.has("skip_ratio")      ? o.getDouble("skip_ratio")                 : -1,
-                        o.has("queue_type")      ? o.getEnum(QueueType.class, "queue_type")  : QueueType.FAIR));
+                HashMap<Long, Settings> newSettings = getSettings(Long.parseLong(id), o, config);
+                settings.putAll(newSettings);
             });
         } catch (NoSuchFileException e) {
             // create an empty json file
@@ -76,7 +67,26 @@ public class SettingsManager implements GuildSettingsManager<Settings>
             LOG.warn("Failed to load server settings: "+e);
         }
 
+        if(this.settings.isEmpty()) {
+            this.settings.putAll(getSettings(config.getGuild(), new JSONObject(), config));
+        }
+
         LOG.info("serversettings.json loaded from " + OtherUtil.getPath("serversettings.json").toAbsolutePath());
+    }
+
+    private HashMap<Long,Settings> getSettings(Long id, JSONObject o, BotConfig config) {
+        HashMap<Long, Settings> settings = new HashMap<>();
+        settings.put(id, new Settings(this,
+                o.has("text_channel_id") ? o.getString("text_channel_id")            : null,
+                o.has("voice_channel_id")? o.getString("voice_channel_id")           : config.getVoiceChannelId(),
+                o.has("dj_role_id")      ? o.getString("dj_role_id")                 : null,
+                o.has("volume")          ? o.getInt("volume")                        : 100,
+                o.has("default_playlist")? o.getString("default_playlist")           : null,
+                o.has("repeat_mode")     ? o.getEnum(RepeatMode.class, "repeat_mode"): RepeatMode.OFF,
+                o.has("prefix")          ? o.getString("prefix")                     : null,
+                o.has("skip_ratio")      ? o.getDouble("skip_ratio")                 : -1,
+                o.has("queue_type")      ? o.getEnum(QueueType.class, "queue_type")  : QueueType.FAIR));
+        return settings;
     }
 
     /**
